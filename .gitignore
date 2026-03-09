@@ -25,7 +25,7 @@ temp/
 # 打包资源
 resources/ffmpeg
 resources/ffmpeg.exe
-resources/icon.ico
+# 注意：icon.ico 需要提交，用于 Windows 构建
 
 # 图标（如果生成）
 *.ico
