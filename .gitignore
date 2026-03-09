@@ -39,3 +39,6 @@ config.json
 
 # Drone
 .drone.yml.sig
+
+# GitHub
+.github/workflows/secrets.yml
