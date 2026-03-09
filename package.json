@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0",
+    "electron": "^31.0.0",
     "electron-builder": "^24.9.0"
   },
   "dependencies": {
@@ -59,7 +59,7 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "icon.ico",
+      "icon": "icon.png",
       "requestedExecutionLevel": "asInvoker",
       "sign": null
     },
@@ -71,15 +71,15 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Screen Streamer",
       "runAfterFinish": true,
-      "installerHeaderIcon": "resources/icon.ico",
-      "installerIcon": "resources/icon.ico",
-      "uninstallerIcon": "resources/icon.ico",
+      "installerHeaderIcon": "resources/icon.png",
+      "installerIcon": "resources/icon.png",
+      "uninstallerIcon": "resources/icon.png",
       "license": "LICENSE",
       "differentialPackage": true
     },
     "mac": {
       "target": ["dmg"],
-      "icon": "icon.icns",
+      "icon": "icon.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false
     },
