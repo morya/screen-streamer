@@ -1,0 +1,202 @@
+kind: pipeline
+type: exec
+name: build-windows-installer
+
+platform:
+  os: windows
+  arch: amd64
+
+environment:
+  NODE_VERSION: "20"
+  ELECTRON_BUILDER_CACHE: "C:\\electron-builder-cache"
+
+trigger:
+  branch:
+    - master
+    - main
+  event:
+    - push
+    - tag
+
+clone:
+  disable: false
+
+steps:
+  - name: check-environment
+    commands:
+      - echo "=== 构建环境信息 ==="
+      - node --version
+      - npm --version
+      - git --version
+      - echo "工作目录: %CD%"
+
+  - name: install-dependencies
+    commands:
+      - echo "=== 安装依赖 ==="
+      - npm ci --prefer-offline --no-audit
+    when:
+      event:
+        exclude:
+          - tag
+
+  - name: install-dependencies-tag
+    commands:
+      - echo "=== 安装依赖 (Tag 构建) ==="
+      - npm install --prefer-offline --no-audit
+    when:
+      event:
+        include:
+          - tag
+
+  - name: download-ffmpeg
+    commands:
+      - echo "=== 下载 FFmpeg ==="
+      - if not exist "resources" mkdir resources
+      - if not exist "resources\\ffmpeg.exe" (
+          echo "下载 FFmpeg..."
+          curl -L -o ffmpeg.zip "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+          powershell -Command "Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg_temp -Force"
+          move /Y "ffmpeg_temp\\*\\bin\\ffmpeg.exe" "resources\\ffmpeg.exe"
+          rmdir /s /q ffmpeg_temp
+          del ffmpeg.zip
+        ) else (
+          echo "FFmpeg 已存在，跳过下载"
+        )
+
+  - name: build-installer
+    commands:
+      - echo "=== 构建 Windows 安装程序 ==="
+      - set CI=true
+      - set GH_TOKEN=dummy
+      - npm run build:win
+    environment:
+      # 如果有代码签名证书，可以在此配置
+      # CSC_LINK: 
+      # CSC_KEY_PASSWORD: 
+
+  - name: verify-output
+    commands:
+      - echo "=== 验证构建输出 ==="
+      - dir dist
+      - if exist "dist\\*.exe" (
+          echo "✓ 安装程序生成成功"
+          for %%f in (dist\*.exe) do (
+            echo "文件：%%f"
+            for %%A in ("%%f") do echo "大小：%%~zA 字节"
+          )
+        ) else (
+          echo "✗ 未找到安装程序"
+          exit /b 1
+        )
+
+  - name: generate-checksum
+    commands:
+      - echo "=== 生成校验和 ==="
+      - if exist "dist" (
+          cd dist
+          for %%f in (*.exe) do (
+            certutil -hashfile %%f SHA256 | find /i "sha256" > %%f.sha256
+            echo "已生成 %%f.sha256"
+          )
+          cd ..
+        )
+
+  - name: publish-artifacts
+    commands:
+      - echo "=== 发布构建产物 ==="
+      - echo "构建完成，产物位置：dist\\"
+      - dir dist /b
+    when:
+      status:
+        - success
+
+  - name: notify
+    commands:
+      - echo "=== 构建通知 ==="
+      - echo "构建状态: %DRONE_BUILD_STATUS%"
+      - echo "构建编号: %DRONE_BUILD_NUMBER%"
+      - echo "提交信息: %DRONE_COMMIT_MESSAGE%"
+      - echo "分支: %DRONE_BRANCH%"
+      - echo "标签: %DRONE_TAG%"
+    when:
+      status:
+        - success
+        - failure
+
+---
+kind: pipeline
+type: exec
+name: build-windows-portable
+
+platform:
+  os: windows
+  arch: amd64
+
+trigger:
+  branch:
+    - develop
+  event:
+    - push
+
+steps:
+  - name: install-dependencies
+    commands:
+      - npm ci --prefer-offline --no-audit
+
+  - name: download-ffmpeg
+    commands:
+      - if not exist "resources" mkdir resources
+      - if not exist "resources\\ffmpeg.exe" (
+          curl -L -o ffmpeg.zip "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+          powershell -Command "Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg_temp -Force"
+          move /Y "ffmpeg_temp\\*\\bin\\ffmpeg.exe" "resources\\ffmpeg.exe"
+          rmdir /s /q ffmpeg_temp
+          del ffmpeg.zip
+        )
+
+  - name: build-portable
+    commands:
+      - set CI=true
+      - npm run build:win -- --dir
+
+  - name: verify-output
+    commands:
+      - echo "便携版构建完成"
+      - dir dist
+
+---
+kind: pipeline
+type: exec
+name: test-and-lint
+
+platform:
+  os: windows
+  arch: amd64
+
+trigger:
+  event:
+    - pull_request
+
+steps:
+  - name: install-dependencies
+    commands:
+      - npm ci --prefer-offline --no-audit
+
+  - name: lint
+    commands:
+      - echo "=== 代码检查 ==="
+      - echo "注意：当前项目未配置 ESLint，可后续添加"
+      # - npm run lint
+
+  - name: verify-structure
+    commands:
+      - echo "=== 验证项目结构 ==="
+      - if not exist "main.js" (echo "✗ 缺少 main.js" && exit /b 1)
+      - if not exist "preload.js" (echo "✗ 缺少 preload.js" && exit /b 1)
+      - if not exist "index.html" (echo "✗ 缺少 index.html" && exit /b 1)
+      - if not exist "package.json" (echo "✗ 缺少 package.json" && exit /b 1)
+      - echo "✓ 项目结构完整"
+
+---
+kind: signature
+hmac: 0000000000000000000000000000000000000000000000000000000000000000

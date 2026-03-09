@@ -29,19 +29,53 @@
   "build": {
     "appId": "com.screenstreamer.app",
     "productName": "Screen Streamer",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "resources"
     },
     "files": [
       "main.js",
       "preload.js",
       "index.html",
       "renderer.js",
-      "styles.css"
+      "styles.css",
+      "resources/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/ffmpeg.exe",
+        "to": "ffmpeg.exe",
+        "filter": ["**/*"]
+      }
     ],
     "win": {
-      "target": ["nsis"],
-      "icon": "icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Screen Streamer",
+      "runAfterFinish": true,
+      "installerHeaderIcon": "resources/icon.ico",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "license": "LICENSE",
+      "differentialPackage": true
     },
     "mac": {
       "target": ["dmg"],

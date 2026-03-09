@@ -25,6 +25,7 @@ temp/
 # 打包资源
 resources/ffmpeg
 resources/ffmpeg.exe
+resources/icon.ico
 
 # 图标（如果生成）
 *.ico
@@ -32,3 +33,9 @@ resources/ffmpeg.exe
 
 # 配置存储
 config.json
+
+# SSH 密钥
+.ssh/
+
+# Drone
+.drone.yml.sig
