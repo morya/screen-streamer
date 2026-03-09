@@ -26,6 +26,7 @@
 ### 1. 克隆项目
 
 ```bash
+git clone git@github.com:morya/screen-streamer.git
 cd screen-streamer
 ```
 
