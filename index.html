@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+  <title>Screen Streamer - 桌面推流工具</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 头部 -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">📺</span>
+        <h1>Screen Streamer</h1>
+      </div>
+      <div class="status-bar">
+        <span id="connection-status" class="status-indicator">●</span>
+        <span id="status-text">就绪</span>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 左侧：屏幕选择 -->
+      <section class="panel screen-panel">
+        <h2>📹 捕获源</h2>
+        <div class="screen-selector" id="screen-selector">
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+
+      <!-- 右侧：配置面板 -->
+      <section class="panel config-panel">
+        <h2>⚙️ 推流配置</h2>
+        
+        <form id="stream-form">
+          <!-- RTMP 地址 -->
+          <div class="form-group">
+            <label for="rtmp-url">推流地址 (RTMP)</label>
+            <input 
+              type="text" 
+              id="rtmp-url" 
+              placeholder="rtmp://live-server/app/stream-key"
+              required
+            />
+            <small>例如：rtmp://live.twitch.tv/app/your-stream-key</small>
+          </div>
+
+          <!-- 视频设置 -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="resolution">分辨率</label>
+              <select id="resolution">
+                <option value="1920x1080">1920x1080 (1080p)</option>
+                <option value="1280x720" selected>1280x720 (720p)</option>
+                <option value="854x480">854x480 (480p)</option>
+                <option value="640x360">640x360 (360p)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="fps">帧率 (FPS)</label>
+              <select id="fps">
+                <option value="60">60 FPS</option>
+                <option value="30" selected>30 FPS</option>
+                <option value="24">24 FPS</option>
+                <option value="15">15 FPS</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bitrate">视频码率 (Kbps)</label>
+              <input 
+                type="number" 
+                id="bitrate" 
+                value="2500" 
+                min="500" 
+                max="20000"
+                step="100"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="audio-bitrate">音频码率 (Kbps)</label>
+              <input 
+                type="number" 
+                id="audio-bitrate" 
+                value="128" 
+                min="64" 
+                max="320"
+                step="32"
+              />
+            </div>
+          </div>
+
+          <!-- 视频编码 -->
+          <div class="form-group">
+            <label for="video-codec">视频编码器</label>
+            <select id="video-codec">
+              <option value="libx264">H.264 (软件编码)</option>
+              <option value="h264_nvenc">H.264 (NVIDIA NVENC)</option>
+              <option value="h264_amf">H.264 (AMD AMF)</option>
+              <option value="h264_qsv">H.264 (Intel QSV)</option>
+              <option value="h264_videotoolbox">H.264 (macOS VideoToolbox)</option>
+            </select>
+            <small id="codec-hint">需要相应硬件支持</small>
+          </div>
+
+          <!-- 音频设备 -->
+          <div class="form-group">
+            <label for="audio-device">音频输入</label>
+            <select id="audio-device">
+              <option value="none">不捕获音频</option>
+              <option value="default" selected>默认麦克风</option>
+              <option value="system">系统音频 (需要额外配置)</option>
+            </select>
+          </div>
+
+          <!-- 预设配置 -->
+          <div class="form-group">
+            <label>快速预设</label>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn" data-preset="low">低带宽</button>
+              <button type="button" class="preset-btn" data-preset="medium">中等</button>
+              <button type="button" class="preset-btn" data-preset="high">高质量</button>
+              <button type="button" class="preset-btn" data-preset="ultra">超清</button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <!-- 底部控制栏 -->
+    <footer class="control-bar">
+      <div class="stream-info">
+        <div class="info-item">
+          <span class="label">状态:</span>
+          <span id="stream-status" class="value">未推流</span>
+        </div>
+        <div class="info-item">
+          <span class="label">码率:</span>
+          <span id="current-bitrate" class="value">--</span>
+        </div>
+        <div class="info-item">
+          <span class="label">时长:</span>
+          <span id="stream-duration" class="value">00:00:00</span>
+        </div>
+      </div>
+
+      <div class="control-buttons">
+        <button id="save-config-btn" class="btn btn-secondary">
+          💾 保存配置
+        </button>
+        <button id="load-config-btn" class="btn btn-secondary">
+          📂 加载配置
+        </button>
+        <button id="start-stream-btn" class="btn btn-primary">
+          🎬 开始推流
+        </button>
+        <button id="stop-stream-btn" class="btn btn-danger" disabled>
+          ⏹️ 停止推流
+        </button>
+      </div>
+    </footer>
+
+    <!-- 日志面板 -->
+    <div class="log-panel" id="log-panel">
+      <div class="log-header">
+        <h3>📋 推流日志</h3>
+        <button id="clear-log-btn" class="btn btn-small">清空</button>
+      </div>
+      <div class="log-content" id="log-content">
+        <div class="log-entry info">等待开始推流...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

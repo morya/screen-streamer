@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 构建输出
+dist/
+out/
+
+# 日志
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 配置文件
+.env
+.env.local
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 打包资源
+resources/ffmpeg
+resources/ffmpeg.exe
+
+# 图标（如果生成）
+*.ico
+*.icns
+
+# 配置存储
+config.json

@@ -1,0 +1,9 @@
+图标文件说明：
+请准备以下图标文件用于打包：
+- icon.png (512x512) - Linux 和通用
+- icon.ico (256x256) - Windows
+- icon.icns (512x512) - macOS
+
+可以使用以下工具生成：
+- https://www.icoconverter.com/
+- https://iconverticons.com/online/
