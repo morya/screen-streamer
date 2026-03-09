@@ -24,15 +24,15 @@ clone:
 steps:
   - name: check-environment
     commands:
-      - echo "=== 构建环境信息 ==="
+      - echo "=== Build Environment Info ==="
       - node --version
       - npm --version
       - git --version
-      - echo "工作目录: %CD%"
+      - echo "Working directory: %CD%"
 
   - name: install-dependencies
     commands:
-      - echo "=== 安装依赖 ==="
+      - echo "=== Install Dependencies ==="
       - npm ci --prefer-offline --no-audit
     when:
       event:
@@ -41,7 +41,7 @@ steps:
 
   - name: install-dependencies-tag
     commands:
-      - echo "=== 安装依赖 (Tag 构建) ==="
+      - echo "=== Install Dependencies (Tag Build) ==="
       - npm install --prefer-offline --no-audit
     when:
       event:
@@ -50,61 +50,61 @@ steps:
 
   - name: download-ffmpeg
     commands:
-      - echo "=== 下载 FFmpeg ==="
+      - echo "=== Download FFmpeg ==="
       - if not exist "resources" mkdir resources
       - if not exist "resources\\ffmpeg.exe" (
-          echo "下载 FFmpeg..."
+          echo "Downloading FFmpeg..."
           curl -L -o ffmpeg.zip "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
           powershell -Command "Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg_temp -Force"
           move /Y "ffmpeg_temp\\*\\bin\\ffmpeg.exe" "resources\\ffmpeg.exe"
           rmdir /s /q ffmpeg_temp
           del ffmpeg.zip
         ) else (
-          echo "FFmpeg 已存在，跳过下载"
+          echo "FFmpeg already exists, skipping download"
         )
 
   - name: build-installer
     commands:
-      - echo "=== 构建 Windows 安装程序 ==="
+      - echo "=== Build Windows Installer ==="
       - set CI=true
       - set GH_TOKEN=dummy
       - npm run build:win
     environment:
-      # 如果有代码签名证书，可以在此配置
+      # If you have code signing certificate, configure it here
       # CSC_LINK: 
       # CSC_KEY_PASSWORD: 
 
   - name: verify-output
     commands:
-      - echo "=== 验证构建输出 ==="
+      - echo "=== Verify Build Output ==="
       - dir dist
       - if exist "dist\\*.exe" (
-          echo "✓ 安装程序生成成功"
+          echo "Installer generated successfully"
           for %%f in (dist\*.exe) do (
-            echo "文件：%%f"
-            for %%A in ("%%f") do echo "大小：%%~zA 字节"
+            echo "File: %%f"
+            for %%A in ("%%f") do echo "Size: %%~zA bytes"
           )
         ) else (
-          echo "✗ 未找到安装程序"
+          echo "Installer not found"
           exit /b 1
         )
 
   - name: generate-checksum
     commands:
-      - echo "=== 生成校验和 ==="
+      - echo "=== Generate Checksum ==="
       - if exist "dist" (
           cd dist
           for %%f in (*.exe) do (
             certutil -hashfile %%f SHA256 | find /i "sha256" > %%f.sha256
-            echo "已生成 %%f.sha256"
+            echo "Generated %%f.sha256"
           )
           cd ..
         )
 
   - name: publish-artifacts
     commands:
-      - echo "=== 发布构建产物 ==="
-      - echo "构建完成，产物位置：dist\\"
+      - echo "=== Publish Build Artifacts ==="
+      - echo "Build complete, artifacts location: dist\\"
       - dir dist /b
     when:
       status:
@@ -112,12 +112,12 @@ steps:
 
   - name: notify
     commands:
-      - echo "=== 构建通知 ==="
-      - echo "构建状态: %DRONE_BUILD_STATUS%"
-      - echo "构建编号: %DRONE_BUILD_NUMBER%"
-      - echo "提交信息: %DRONE_COMMIT_MESSAGE%"
-      - echo "分支: %DRONE_BRANCH%"
-      - echo "标签: %DRONE_TAG%"
+      - echo "=== Build Notification ==="
+      - echo "Build Status: %DRONE_BUILD_STATUS%"
+      - echo "Build Number: %DRONE_BUILD_NUMBER%"
+      - echo "Commit Message: %DRONE_COMMIT_MESSAGE%"
+      - echo "Branch: %DRONE_BRANCH%"
+      - echo "Tag: %DRONE_TAG%"
     when:
       status:
         - success
@@ -161,7 +161,7 @@ steps:
 
   - name: verify-output
     commands:
-      - echo "便携版构建完成"
+      - echo "Portable build complete"
       - dir dist
 
 ---
@@ -184,18 +184,18 @@ steps:
 
   - name: lint
     commands:
-      - echo "=== 代码检查 ==="
-      - echo "注意：当前项目未配置 ESLint，可后续添加"
+      - echo "=== Code Linting ==="
+      - echo "Note: ESLint is not configured yet, can be added later"
       # - npm run lint
 
   - name: verify-structure
     commands:
-      - echo "=== 验证项目结构 ==="
-      - if not exist "main.js" (echo "✗ 缺少 main.js" && exit /b 1)
-      - if not exist "preload.js" (echo "✗ 缺少 preload.js" && exit /b 1)
-      - if not exist "index.html" (echo "✗ 缺少 index.html" && exit /b 1)
-      - if not exist "package.json" (echo "✗ 缺少 package.json" && exit /b 1)
-      - echo "✓ 项目结构完整"
+      - echo "=== Verify Project Structure ==="
+      - if not exist "main.js" (echo "Missing main.js" && exit /b 1)
+      - if not exist "preload.js" (echo "Missing preload.js" && exit /b 1)
+      - if not exist "index.html" (echo "Missing index.html" && exit /b 1)
+      - if not exist "package.json" (echo "Missing package.json" && exit /b 1)
+      - echo "Project structure is complete"
 
 ---
 kind: signature
