@@ -50,7 +50,9 @@ jobs:
       - name: Download FFmpeg
         run: |
           echo "=== Downloading FFmpeg ==="
-          mkdir -p resources
+          if (-Not (Test-Path "resources")) {
+            New-Item -ItemType Directory -Path "resources" | Out-Null
+          }
           if (-Not (Test-Path "resources\ffmpeg.exe")) {
             Write-Host "Downloading FFmpeg..."
             Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
@@ -155,7 +157,9 @@ jobs:
 
       - name: Download FFmpeg
         run: |
-          mkdir -p resources
+          if (-Not (Test-Path "resources")) {
+            New-Item -ItemType Directory -Path "resources" | Out-Null
+          }
           if (-Not (Test-Path "resources\ffmpeg.exe")) {
             Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
             Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg_temp -Force
